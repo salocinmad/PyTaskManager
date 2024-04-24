@@ -41,11 +41,10 @@ class GestorTareas:
 class GUI:
     def __init__(self):
         self.raiz = tk.Tk()
-        self.raiz.title("Gestor de Tareas")
+        self.raiz.title("Gestor de Tareas - Beta 0.2")
         self.gestor = GestorTareas()
 
-        # Set the window size to be double the original size
-        self.raiz.geometry("800x600")  # Adjust this value as needed
+        self.raiz.geometry("800x600")
 
         self.titulo_label = tk.Label(self.raiz, text="Título")
         self.titulo_entrada = tk.Entry(self.raiz)
@@ -58,8 +57,7 @@ class GUI:
         self.agregar_boton = tk.Button(self.raiz, text="Agregar Tarea", command=self.agregar_tarea)
         self.eliminar_boton = tk.Button(self.raiz, text="Eliminar Tarea", command=self.eliminar_tarea)
 
-        # Set the listbox to be double the original size
-        self.lista_tareas = tk.Listbox(self.raiz, selectmode=tk.SINGLE, width=100, height=20)  # Adjust these values as needed
+        self.lista_tareas = tk.Listbox(self.raiz, selectmode=tk.SINGLE, width=100, height=20)
         self.lista_tareas.bind('<<ListboxSelect>>', self.mostrar_info_tarea)
 
         self.titulo_label.pack()
@@ -86,6 +84,7 @@ class GUI:
             tarea = Tarea(titulo, descripcion, prioridad, fecha_limite)
             self.gestor.agregar_tarea(tarea)
             self.lista_tareas.insert(tk.END, f"{tarea.titulo} - {tarea.fecha_limite.strftime('%d-%m-%Y')}")
+            self.limpiar_campos()
         else:
             messagebox.showerror("Error", "Todos los campos deben estar llenos")
 
@@ -101,19 +100,18 @@ class GUI:
         if tarea_seleccionada:
             tarea = self.gestor.obtener_tareas()[tarea_seleccionada[0]]
             messagebox.showinfo("Información de la Tarea", f"Título: {tarea.titulo}\nDescripción: {tarea.descripcion}\nPrioridad: {tarea.prioridad}\nFecha límite: {tarea.fecha_limite.strftime('%d-%m-%Y')}")
-            if tarea.fecha_limite.date() == datetime.now().date():
+            if tarea.fecha_limite == datetime.now().date():
                 self.lista_tareas.itemconfig(tarea_seleccionada, {'bg':'red'})
 
     def check_upcoming_tasks(self):
         while True:
-            now = datetime.now().date()  # Convert 'now' to a date object
+            now = datetime.now().date()
             for tarea in self.gestor.obtener_tareas():
                 if (tarea.fecha_limite - now).days < 1:
                     messagebox.showinfo("Notificación", f"La tarea {tarea.titulo} vence pronto")
-            time.sleep(3600)  # Check every hour
+            time.sleep(3600)
 
     def generar_grafico(self):
-        # This is just a placeholder. You would need to replace this with your actual data.
         data = [tarea.prioridad for tarea in self.gestor.obtener_tareas()]
         fig = plt.Figure(figsize=(6, 5), dpi=100)
         fig.add_subplot(111).bar(range(len(data)), data)
@@ -123,6 +121,12 @@ class GUI:
     def ejecutar(self):
         threading.Thread(target=self.check_upcoming_tasks, daemon=True).start()
         self.raiz.mainloop()
+
+    def limpiar_campos(self):
+        self.titulo_entrada.delete(0, tk.END)
+        self.descripcion_entrada.delete(0, tk.END)
+        self.prioridad_entrada.delete(0, tk.END)
+        self.fecha_limite_entrada.set_date(datetime.now().date())
 
 if __name__ == "__main__":
     gui = GUI()
